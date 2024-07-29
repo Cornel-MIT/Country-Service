@@ -1,23 +1,84 @@
 import logo from './logo.svg';
 import './App.css';
+import { useEffect, useState } from 'react';
+import countryService from './services/countryService';
 
 function App() {
+   const [countries, setCountries] = useState([]);
+
+   const [region, setRegion] = useState('All');
+
+   const [searchTerm, setSearchTerm] = useState('');
+
+   useEffect(() => {
+    
+    if (searchTerm) {
+      countryService.getCountry(searchTerm)
+        .then(response => {
+          setCountries(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching the countries by name:', error);
+          setCountries([]);
+        });
+      }
+      
+   else if (region === 'All') {
+      countryService.getAllCountries()
+        .then(response => {
+          console.log(response);
+          setCountries(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching the countries:', error);
+        });
+    } 
+
+    else {
+      countryService.getCountriesByRegion(region)
+        .then(response => {
+          setCountries(response.data);
+        })
+        .catch(error => {
+          console.error('Error fetching the countries:', error);
+        });
+    }
+  }, [region, searchTerm]);
+     
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+
+       <label>
+          Search by Name:
+         <input 
+            type="text" 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            placeholder="Enter country name" 
+        />
+      </label>
+
+     <label>
+        Filter by Region:
+        <select value={region} onChange={(e) => setRegion(e.target.value)}>
+          <option value="All">All</option>
+          <option value="Africa">Africa</option>
+          <option value="Americas">Americas</option>
+          <option value="Asia">Asia</option>
+          <option value="Europe">Europe</option>
+          <option value="Oceania">Oceania</option>
+        </select>
+      </label>
+      
+      <ul>
+        {countries.map((country, index) => (
+          <li key={index}>
+            <img src={country.flags.png} alt={country.name.common} style={{width: '50px'}} />
+            <p>{country.name.common}</p>
+            <p>{country.region}</p>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
